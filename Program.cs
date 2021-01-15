@@ -10,7 +10,9 @@ namespace CE
         {
             // MainGame();
 
-            FenTest();
+            // FenTest();
+            // RealGame();
+            TestSpeed();
         }
 
         private static void FenTest()
@@ -23,28 +25,60 @@ namespace CE
 
         private static void MainGame()
         {
-            var game = new Game();
-            var sw = new Stopwatch();
-            var rand = new Random();
-            var currState = game.State;
-            while(true){
-                var states = currState.GetAllStates();
-                Console.WriteLine(currState.GetFen());
-                if(states.Count == 0 || currState.PieceLookup.Count < 4){
-                    break;
-                }
-                // currState = states.First();
-                currState = states.ElementAt(rand.Next(0, states.Count));
-                // currState.DisplayBoard();
-                Console.WriteLine();
-            }
-            // sw.Start();
-            // for(int i = 0; i < 10000; i++){
-            //     currState.GetAllStates();
-            // }
-            // Console.WriteLine(sw.ElapsedMilliseconds);
+            var state = new State("r1bqkb1r/p2p1ppp/n1p2n2/1p2p3/4P3/2PP1N2/PP2BPPP/RNBQK2R w");
+            var ai = new AI();
+            var eval = ai.Minimax(state, 2, state.WhiteToMove);
+            var moveConverter = new MoveConverter();
+            Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove));
         }
 
-        
+        private static void RealGame(){
+            var player = Console.ReadLine();
+            Console.WriteLine("You've typed " + player);
+            var playersWhite = player.Contains('1') ? true : false;
+
+            var state = new State();
+            var ai = new AI();
+            var moveConverter = new MoveConverter();
+
+            while(true){
+                if(state.WhiteToMove == playersWhite){
+                    var m = Console.ReadLine();
+                    if(m.Contains("res")){
+                        break;
+                    }
+                    var move = moveConverter.StringToMove(m);
+                    var allStates = state.GetAllStates();
+                    var x = allStates.Select(x => x.LastMove).ToList();
+                    if(move.WasLongCastling){
+                        state = allStates.First(s => s.LastMove.WasLongCastling);
+                    }
+                    if(move.WasShortCastling){
+                        state = allStates.First(s => s.LastMove.WasShortCastling);
+                    }
+                    else{
+                        state = allStates.First(s => s.LastMove.DestinationFile == move.DestinationFile && s.LastMove.DestinationLine == move.DestinationLine 
+                            && s.LastMove.StartingLine == move.StartingLine && s.LastMove.StartingFile == move.StartingFile);
+                    }
+                }
+                else{
+                    var eval = ai.Minimax(state, 4, state.WhiteToMove);
+                    Console.WriteLine(eval.Item1 + " " + moveConverter.MoveToString(eval.Item2.LastMove));
+                    state = eval.Item2;
+                }
+            }
+        }
+
+        private static void TestSpeed(){
+            var sw = new Stopwatch();
+            var state = new State("rn1qkbnr/ppp1p1p1/5p1p/3p1b2/1P1P4/P1P1P3/5PPP/RNBQKBNR b");
+            var ai = new AI();
+            var iterations = 2;
+            sw.Start();
+            for(int i = 0; i < iterations; i++){   
+                var eval = ai.Minimax(state, 4, state.WhiteToMove);
+            }
+            Console.WriteLine(sw.ElapsedMilliseconds / iterations);
+        }
     }
 }

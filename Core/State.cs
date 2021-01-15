@@ -61,12 +61,9 @@ public class State{
     public List<State> GetAllStates(){
         var states = new List<State>();
         var moves = new List<Move>();
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                var piece = Board[i, j];
-                if(piece != null && piece.IsWhite == WhiteToMove && piece.Type == PieceType.King){
-                    moves.AddRange(Board[i, j].GetPossibleMoves(Board));
-                }
+        foreach(var piece in PieceLookup){
+            if(piece.IsWhite == WhiteToMove){
+                moves.AddRange(piece.GetPossibleMoves(Board));
             }
         }
 
