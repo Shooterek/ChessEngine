@@ -145,9 +145,9 @@ public class Piece{
                 if(Line == 6){
                     if(board[5, File] == null){
                         moves.Add(new Move(6, File, 5, File));
-                    }
-                    if(board[4, File] == null){
-                        moves.Add(new Move(6, File, 4, File));
+                        if(board[4, File] == null){
+                            moves.Add(new Move(6, File, 4, File));
+                        }
                     }
                 }
                 else{
@@ -168,9 +168,9 @@ public class Piece{
                 if(Line == 1){
                     if(board[2, File] == null){
                         moves.Add(new Move(Line, File, 2, File));
-                    }
-                    if(board[3, File] == null){
-                        moves.Add(new Move(1, File, 3, File));
+                        if(board[3, File] == null){
+                            moves.Add(new Move(1, File, 3, File));
+                        }
                     }
                 }
                 else{
@@ -230,6 +230,9 @@ public class Piece{
             else if(pieceOnSquare != null && pieceOnSquare.IsWhite != IsWhite){
                 allMoves.Add(new Move(Line, File, (short)(i), (short)(j)));
                 break;
+            }
+            else{
+                allMoves.Add(new Move(Line, File, (short)(i), (short)(j)));
             }
         }
 

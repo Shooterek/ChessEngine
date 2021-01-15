@@ -6,15 +6,13 @@ using System.Text;
 public class State{
     public State()
     {
+        SetCastlingPossibility();
         WhiteToMove = true;
         InitializeBoard();
     }
-    public Piece[,] Board { get; set; }
-    public List<Piece> PieceLookup { get; set; }
-    public bool WhiteToMove { get; set; }
-    public Move LastMove { get; set; }
 
     public State(State previousState, Move move){
+        SetCastlingPossibility();
         LastMove = move;
         WhiteToMove = !previousState.WhiteToMove;
         Board = new Piece[8, 8];
@@ -30,6 +28,42 @@ public class State{
         }
         MakeMove(move);
     }
+
+    public State(string fen){
+        SetCastlingPossibility();
+        Board = new Piece[8, 8];
+        PieceLookup = new List<Piece>();
+        var parts = fen.Split('/');
+        var sideToMove = parts[7].Split(' ')[1];
+        WhiteToMove = sideToMove.Equals("w", StringComparison.InvariantCultureIgnoreCase) ? true : false;
+        for(short i = 0; i < 8; i++){
+            short fileIndex = 0;
+            foreach(var c in parts[i].ToCharArray()){
+                if(c == ' '){
+                    break;
+                }
+                if(Char.IsDigit(c)){
+                    fileIndex += (short)Char.GetNumericValue(c);
+                }
+                else{
+                    var pieceType = GetPieceType(c);
+                    var isWhite = Char.IsUpper(c) ? true : false;
+                    var piece = new Piece(i, fileIndex, pieceType, isWhite);
+                    Board[i, fileIndex] = piece;
+                    PieceLookup.Add(piece);
+                    fileIndex++;
+                }
+            }
+        }
+    }
+    public Piece[,] Board { get; set; }
+    public List<Piece> PieceLookup { get; set; }
+    public bool WhiteToMove { get; set; }
+    public Move LastMove { get; set; }
+    public bool B00CastlingPossibility { get; set; }
+    public bool B000CastlingPossibility { get; set; }
+    public bool W00CastlingPossibility { get; set; }
+    public bool W000CastlingPossibility { get; set; }
 
     public List<State> GetAllStates(){
         var states = new List<State>();
@@ -101,10 +135,39 @@ public class State{
             }
             fenBuilder.Append('/');
         }
+        fenBuilder.Remove(fenBuilder.Length - 1, 1);
+        // fenBuilder.Append(WhiteToMove ? " w" : " b");
 
         return fenBuilder.ToString();
     }
-    
+
+    private void SetCastlingPossibility(){
+        B000CastlingPossibility = true;
+        B00CastlingPossibility = true;
+        W000CastlingPossibility = true;
+        W00CastlingPossibility = true;
+    }
+
+    private PieceType GetPieceType(char c){
+        var p = c.ToString().ToLower();
+        switch(p){
+            case "p":
+                return PieceType.Pawn;
+            case "k":
+                return PieceType.King;
+            case "n":
+                return PieceType.Knight;
+            case "r":
+                return PieceType.Rook;
+            case "b":
+                return PieceType.Bishop;
+            case "q":
+                return PieceType.Queen;
+        }
+
+        throw new Exception("Incorrect piece letter" + p);
+    }
+
     private void MakeMove(Move move)
     {
         var movedPiece = Board[move.StartingLine, move.StartingFile];
