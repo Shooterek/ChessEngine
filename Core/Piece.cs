@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 public class Piece{
@@ -18,102 +19,109 @@ public class Piece{
         return new Piece(Line, File, Type, IsWhite);
     }
 
-    public IEnumerable<State> GetPossibleStates(State state){
+    public IEnumerable<Move> GetPossibleMoves(Piece[,] board, bool movesAndAttacks = true){
+        IEnumerable<Move> moves = null;
         switch(Type){
             case PieceType.Pawn:
-                return GetPawnMoves(state.Board, state);
+                moves = GetPawnMoves(board, movesAndAttacks);
+                break;
             case PieceType.Knight:
-                return GetKnightMoves(state.Board, state);
+                moves = GetKnightMoves(board);
+                break;
             case PieceType.Bishop:
-                return GetBishopMoves(state.Board, state);
+                moves = GetBishopMoves(board);
+                break;
             case PieceType.Rook:
-                return GetRookMoves(state.Board, state);
+                moves = GetRookMoves(board);
+                break;
             case PieceType.Queen:
-                return GetQueenMoves(state.Board, state);
+                moves = GetQueenMoves(board);
+                break;
             case PieceType.King:
-                return GetKingMoves(state.Board, state);
+                moves = GetKingMoves(board);
+                break;
         }
 
-        throw new Exception("Error in move generation");
+        return moves;
     }
 
-    private IEnumerable<State> GetKingMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetKingMoves(Piece[,] board)
     {
-        var states = new List<State>();
+        var moves = new List<Move>();
         for(int i = -1; i <= 1; i++){
             for(int j = -1; j <= 1; j++){
                 if(i != 0 || j != 0){
                     if(File + j >=0 && Line + i >= 0 && File + j <= 7 && Line + i <= 7){
                         var pieceOnSquare = board[Line + i, File + j];
                         if(pieceOnSquare == null || pieceOnSquare.IsWhite != IsWhite){
-                            states.Add(new State(currentState, new Move(Line, File, (short)(Line + i), (short)(File + j))));
+                            moves.Add(new Move(Line, File, (short)(Line + i), (short)(File + j)));
                         }
                     }
                 }
             }
         }
 
-        return states;
+        return moves;
     }
 
-    private IEnumerable<State> GetQueenMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetQueenMoves(Piece[,] board)
     {
-        var states = new List<State>();
+        var moves = new List<Move>();
 
-        CheckLine(Line, File, board, 1, 0, states, currentState);
-        CheckLine(Line, File, board, 0, 1, states, currentState);
-        CheckLine(Line, File, board, -1, 0, states, currentState);
-        CheckLine(Line, File, board, 0, -1, states, currentState);
+        moves.AddRange(CheckLine(Line, File, 1, 0, board));
+        moves.AddRange(CheckLine(Line, File, 0, 1, board));
+        moves.AddRange(CheckLine(Line, File, -1, 0, board));
+        moves.AddRange(CheckLine(Line, File, 0, -1, board));
 
-        CheckLine(Line, File, board, 1, 1, states, currentState);
-        CheckLine(Line, File, board, 1, -1, states, currentState);
-        CheckLine(Line, File, board, -1, -1, states, currentState);
-        CheckLine(Line, File, board, -1, 1, states, currentState);
+        moves.AddRange(CheckLine(Line, File, 1, 1, board));
+        moves.AddRange(CheckLine(Line, File, 1, -1, board));
+        moves.AddRange(CheckLine(Line, File, -1, -1, board));
+        moves.AddRange(CheckLine(Line, File, -1, 1, board));
 
-        return states;
+        return moves;
     }
 
-    private IEnumerable<State> GetRookMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetRookMoves(Piece[,] board)
     {
-        var states = new List<State>();
+        var moves = new List<Move>();
 
-        CheckLine(Line, File, board, 1, 0, states, currentState);
-        CheckLine(Line, File, board, 0, 1, states, currentState);
-        CheckLine(Line, File, board, -1, 0, states, currentState);
-        CheckLine(Line, File, board, 0, -1, states, currentState);
+        moves.AddRange(CheckLine(Line, File, 1, 0, board));
+        moves.AddRange(CheckLine(Line, File, 0, 1, board));
+        moves.AddRange(CheckLine(Line, File, -1, 0, board));
+        moves.AddRange(CheckLine(Line, File, 0, -1, board));
 
-        return states;
+        return moves;
     }
 
-    private IEnumerable<State> GetBishopMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetBishopMoves(Piece[,] board)
     {
-        var states = new List<State>();
+        var moves = new List<Move>();
 
-        CheckLine(Line, File, board, 1, 1, states, currentState);
-        CheckLine(Line, File, board, 1, -1, states, currentState);
-        CheckLine(Line, File, board, -1, -1, states, currentState);
-        CheckLine(Line, File, board, -1, 1, states, currentState);
+        moves.AddRange(CheckLine(Line, File, 1, 1, board));
+        moves.AddRange(CheckLine(Line, File, 1, -1, board));
+        moves.AddRange(CheckLine(Line, File, -1, -1, board));
+        moves.AddRange(CheckLine(Line, File, -1, 1, board));
 
-        return states;
+        return moves;
     }
 
-    private IEnumerable<State> GetKnightMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetKnightMoves(Piece[,] board)
     {
-        var states = new List<State>();
+        var moves = new List<Move>();
 
-        GetSquareForKnight(Line, File, board, 2, 1, states, currentState);
-        GetSquareForKnight(Line, File, board, 2, -1, states, currentState);
-        GetSquareForKnight(Line, File, board, 1, 2, states, currentState);
-        GetSquareForKnight(Line, File, board, 1, -2, states, currentState);
-        GetSquareForKnight(Line, File, board, -2, 1, states, currentState);
-        GetSquareForKnight(Line, File, board, -2, -1, states, currentState);
-        GetSquareForKnight(Line, File, board, -1, 2, states, currentState);
-        GetSquareForKnight(Line, File, board, -1, -2, states, currentState);
+        GetSquareForKnight(Line, File, 2, 1, board, moves);
+        GetSquareForKnight(Line, File, 2, -1, board, moves);
+        GetSquareForKnight(Line, File, 1, 2, board, moves);
+        GetSquareForKnight(Line, File, 1, -2, board, moves);
+        GetSquareForKnight(Line, File, -2, 1, board, moves);
+        GetSquareForKnight(Line, File, -2, -1, board, moves);
+        GetSquareForKnight(Line, File, -1, 2, board, moves);
+        GetSquareForKnight(Line, File, -1, -2, board, moves);
 
-        return states;
+        return moves;
     }
 
-    private void GetSquareForKnight(short line, short file, Piece[,] board, int xStep, int yStep, List<State> states, State currentState)
+    private void GetSquareForKnight(short line, short file, int xStep, int yStep, Piece[,] board, List<Move> moves)
     {
         var xIndex = (short)(file + xStep);
         var yIndex = (short)(line + yStep);
@@ -124,56 +132,58 @@ public class Piece{
                 return;
             }
             else{
-                states.Add(new State(currentState, new Move(Line, File, yIndex, xIndex)));
+                moves.Add(new Move(Line, File, yIndex, xIndex));
             }
         }
     }
 
-    private IEnumerable<State> GetPawnMoves(Piece[,] board, State currentState)
+    private IEnumerable<Move> GetPawnMoves(Piece[,] board, bool movesAndAttacks = true)
     {
-        var states = new List<State>();
-        if(IsWhite){
-            if(Line == 6){
-                if(board[5, File] == null){
-                    states.Add(new State(currentState, new Move(6, File, 5, File)));
+        var moves = new List<Move>();
+        if(movesAndAttacks){
+            if(IsWhite){
+                if(Line == 6){
+                    if(board[5, File] == null){
+                        moves.Add(new Move(6, File, 5, File));
+                    }
+                    if(board[4, File] == null){
+                        moves.Add(new Move(6, File, 4, File));
+                    }
                 }
-                if(board[4, File] == null){
-                    states.Add(new State(currentState, new Move(6, File, 4, File)));
+                else{
+                    if(board[Line - 1, File] == null){
+                        if(Line - 1 == 0){
+                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Knight));
+                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Bishop));
+                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Rook));
+                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Queen));
+                        }
+                        else{
+                            moves.Add(new Move(Line, File, (short)(Line - 1), File));
+                        }
+                    }
                 }
             }
             else{
-                if(board[Line - 1, File] == null){
-                    if(Line - 1 == 0){
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line - 1), File, true, PieceType.Knight)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line - 1), File, true, PieceType.Bishop)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line - 1), File, true, PieceType.Rook)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line - 1), File, true, PieceType.Queen)));
+                if(Line == 1){
+                    if(board[2, File] == null){
+                        moves.Add(new Move(Line, File, 2, File));
                     }
-                    else{
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line - 1), File)));
+                    if(board[3, File] == null){
+                        moves.Add(new Move(1, File, 3, File));
                     }
                 }
-            }
-        }
-        else{
-            if(Line == 1){
-                if(board[2, File] == null){
-                    states.Add(new State(currentState, new Move(Line, File, 2, File)));
-                }
-                if(board[3, File] == null){
-                    states.Add(new State(currentState, new Move(1, File, 3, File)));
-                }
-            }
-            else{
-                if(board[Line + 1, File] == null){
-                    if(Line + 1 == 7){
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line + 1), File, true, PieceType.Knight)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line + 1), File, true, PieceType.Bishop)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line + 1), File, true, PieceType.Rook)));
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line + 1), File, true, PieceType.Queen)));
-                    }
-                    else{
-                        states.Add(new State(currentState, new Move(Line, File, (short)(Line + 1), File)));
+                else{
+                    if(board[Line + 1, File] == null){
+                        if(Line + 1 == 7){
+                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Knight));
+                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Bishop));
+                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Rook));
+                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Queen));
+                        }
+                        else{
+                            moves.Add(new Move(Line, File, (short)(Line + 1), File));
+                        }
                     }
                 }
             }
@@ -185,41 +195,45 @@ public class Piece{
         var rightAttackedPiece = File + 1 <= 7 ? board[Line + moveDirection, File + 1] : null;
         if(leftAttackedPiece != null && leftAttackedPiece.IsWhite != IsWhite){
             if(Line + moveDirection == 0 || Line + moveDirection == 7){
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Knight)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Bishop)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Rook)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Queen)));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Knight));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Bishop));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Rook));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Queen));
             }
             else{
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1))));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1)));
             }
         }
         if(rightAttackedPiece != null && rightAttackedPiece.IsWhite != IsWhite){
             if(Line + moveDirection == 0 || Line + moveDirection == 7){
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Knight)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Bishop)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Rook)));
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Queen)));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Knight));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Bishop));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Rook));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Queen));
             }
             else{
-                states.Add(new State(currentState, new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1))));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1)));
             }
         }
 
-        return states;
+        return moves;
     }
 
-    private void CheckLine(short line, short file, Piece[,] board, int xStep, int yStep, List<State> states, State currentState)
+    private List<Move> CheckLine(short line, short file, int xStep, int yStep, Piece[,] board)
     {
+        var allMoves = new List<Move>();
         for(int i = Line + yStep, j = File + xStep; i <= 7 && j <= 7 && i >= 0 && j >= 0; i += yStep, j += xStep){
             var pieceOnSquare = board[i, j];
             if(pieceOnSquare != null && pieceOnSquare.IsWhite == IsWhite){
-                return;
+                break;
             }
-            else{
-                states.Add(new State(currentState, new Move(Line, File, (short)(i), (short)(j))));
+            else if(pieceOnSquare != null && pieceOnSquare.IsWhite != IsWhite){
+                allMoves.Add(new Move(Line, File, (short)(i), (short)(j)));
+                break;
             }
         }
+
+        return allMoves;
     }
 
     public override string ToString()
