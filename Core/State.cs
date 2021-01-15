@@ -6,13 +6,11 @@ using System.Text;
 public class State{
     public State()
     {
-        SetCastlingPossibility();
         WhiteToMove = true;
         InitializeBoard();
     }
 
     public State(State previousState, Move move){
-        SetCastlingPossibility();
         LastMove = move;
         WhiteToMove = !previousState.WhiteToMove;
         Board = new Piece[8, 8];
@@ -30,7 +28,6 @@ public class State{
     }
 
     public State(string fen){
-        SetCastlingPossibility();
         Board = new Piece[8, 8];
         PieceLookup = new List<Piece>();
         var parts = fen.Split('/');
@@ -60,10 +57,6 @@ public class State{
     public List<Piece> PieceLookup { get; set; }
     public bool WhiteToMove { get; set; }
     public Move LastMove { get; set; }
-    public bool B00CastlingPossibility { get; set; }
-    public bool B000CastlingPossibility { get; set; }
-    public bool W00CastlingPossibility { get; set; }
-    public bool W000CastlingPossibility { get; set; }
 
     public List<State> GetAllStates(){
         var states = new List<State>();
@@ -71,7 +64,7 @@ public class State{
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 var piece = Board[i, j];
-                if(piece != null && piece.IsWhite == WhiteToMove){
+                if(piece != null && piece.IsWhite == WhiteToMove && piece.Type == PieceType.King){
                     moves.AddRange(Board[i, j].GetPossibleMoves(Board));
                 }
             }
@@ -81,10 +74,31 @@ public class State{
             var newState = new State(this, move);
             var attackingMoves = newState.GetAttackingMoves();
             var king = newState.PieceLookup.First(p => p.Type == PieceType.King && p.IsWhite == WhiteToMove);
-            if(attackingMoves.Any(m => m.DestinationFile == king.File && m.DestinationLine == king.Line)){
+            if(move.WasLongCastling){
+                if(attackingMoves.Any(m => m.DestinationLine == king.Line && (m.DestinationFile == king.File || m.DestinationFile == king.File + 1 
+                    || m.DestinationFile == king.File + 2))){
 
-            }else{
-                states.Add(newState);
+                    }
+                else{
+                    states.Add(newState);
+                }
+            }
+            else if(move.WasShortCastling){
+                if(attackingMoves.Any(m => m.DestinationLine == king.Line && (m.DestinationFile == king.File || m.DestinationFile == king.File - 1
+                    || m.DestinationFile == king.File - 2))){
+
+                    }
+                else{
+                    states.Add(newState);
+                }
+            }
+            else{
+                if(attackingMoves.Any(m => m.DestinationFile == king.File && m.DestinationLine == king.Line)){
+
+                }
+                else{
+                    states.Add(newState);
+                }
             }
         }
 
@@ -141,13 +155,6 @@ public class State{
         return fenBuilder.ToString();
     }
 
-    private void SetCastlingPossibility(){
-        B000CastlingPossibility = true;
-        B00CastlingPossibility = true;
-        W000CastlingPossibility = true;
-        W00CastlingPossibility = true;
-    }
-
     private PieceType GetPieceType(char c){
         var p = c.ToString().ToLower();
         switch(p){
@@ -178,12 +185,14 @@ public class State{
         }
         if(movedPiece.Type == PieceType.King){
             if(move.DestinationFile - move.StartingFile == 2){
+                Board[move.StartingLine, 7].HasMoved = true;
                 Board[move.StartingLine, 7].File = 5;
                 Board[move.StartingLine, 5] = Board[move.StartingLine, 7];
                 Board[move.StartingLine, 7] = null;
             }
             else if(move.DestinationFile - move.StartingFile == -2){
                 Board[move.StartingLine, 0].File = 3;
+                Board[move.StartingLine, 0].HasMoved = true;
                 Board[move.StartingLine, 3] = Board[move.StartingLine, 0];
                 Board[move.StartingLine, 0] = null;
             }
@@ -191,6 +200,7 @@ public class State{
         Board[move.StartingLine, move.StartingFile] = null;
         movedPiece.File = move.DestinationFile;
         movedPiece.Line = move.DestinationLine;
+        movedPiece.HasMoved = true;
         Board[move.DestinationLine, move.DestinationFile] = movedPiece;
         if(move.WasPromotion){
             movedPiece.Type = (PieceType)move.PromotedTo;

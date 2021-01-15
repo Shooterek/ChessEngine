@@ -15,7 +15,7 @@ namespace CE
 
         private static void FenTest()
         {
-            var state = new State("k7/pp6/pp6/8/8/PP6/PP6/K7 w");
+            var state = new State("r3k2r/3ppp2/8/8/8/3n4/3PPP2/R3K1R1 w");
             // var state = new State("3K4/5k2/8/1B3b2/1P2p3/4P2p/8/2r5 w");
             var states = state.GetAllStates();
             Console.WriteLine(state.GetFen());

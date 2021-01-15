@@ -3,20 +3,22 @@ using System.Linq;
 using System.Collections.Generic;
 
 public class Piece{
-    public Piece(short line, short file, PieceType type, bool isWhite)
+    public Piece(short line, short file, PieceType type, bool isWhite, bool hasMoved = false)
     {
         File = file;
         Line = line;
         Type = type;
         IsWhite = isWhite;
+        HasMoved = hasMoved;
     }
     public short File { get; set; }
     public short Line { get; set; }
     public PieceType Type { get; set; }
     public bool IsWhite { get; set; }
+    public bool HasMoved { get; set; }
 
     public Piece CopyPiece(){
-        return new Piece(Line, File, Type, IsWhite);
+        return new Piece(Line, File, Type, IsWhite, HasMoved);
     }
 
     public IEnumerable<Move> GetPossibleMoves(Piece[,] board, bool movesAndAttacks = true){
@@ -60,7 +62,18 @@ public class Piece{
                 }
             }
         }
-
+        if(!HasMoved){
+            var rightRook = board[Line, File + 3];
+            var leftRook = board[Line, File - 4];
+            if(board[Line, File + 1] == null && board[Line, File + 2] == null 
+                && rightRook != null && rightRook.Type == PieceType.Rook && !rightRook.HasMoved){
+                    moves.Add(new Move(Line, File, Line, (short)(File + 2), false, null, true));
+                }
+            if(board[Line, File - 1] == null && board[Line, File - 2] == null && board[Line, File - 3] == null
+                && leftRook != null && leftRook.Type == PieceType.Rook && !leftRook.HasMoved){
+                    moves.Add(new Move(Line, File, Line, (short)(File - 2), false, null, false, true));
+                }
+        }
         return moves;
     }
 
