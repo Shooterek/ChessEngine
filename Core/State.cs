@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -57,13 +58,24 @@ public class State{
     public List<Piece> PieceLookup { get; set; }
     public bool WhiteToMove { get; set; }
     public Move LastMove { get; set; }
+    private List<Move> _attackingMoves;
 
     public List<State> GetAllStates(){
         var states = new List<State>();
         var moves = new List<Move>();
-        foreach(var piece in PieceLookup){
-            if(piece.IsWhite == WhiteToMove){
-                moves.AddRange(piece.GetPossibleMoves(Board));
+
+        if(_attackingMoves == null){
+            foreach(var piece in PieceLookup){
+                if(piece.IsWhite == WhiteToMove){
+                    moves.AddRange(piece.GetPossibleMoves(Board));
+                }
+            }
+        }
+        else{
+            foreach(var piece in PieceLookup){
+                if(piece.IsWhite == WhiteToMove){
+                    moves.AddRange(piece.GetPossibleMoves(Board));
+                }
             }
         }
 
@@ -108,11 +120,11 @@ public class State{
             for(int j = 0; j < 8; j++){
                 var piece = Board[i, j];
                 if(piece != null && piece.IsWhite == WhiteToMove){
-                    moves.AddRange(Board[i, j].GetPossibleMoves(Board, false));
+                    moves.AddRange(Board[i, j].GetPossibleMoves(Board, true));
                 }
             }
         }
-
+        _attackingMoves = moves;
         return moves;
     }
 

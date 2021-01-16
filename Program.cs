@@ -11,8 +11,8 @@ namespace CE
             // MainGame();
 
             // FenTest();
-            // RealGame();
-            TestSpeed();
+            RealGame();
+            // TestSpeed();
         }
 
         private static void FenTest()
@@ -26,7 +26,8 @@ namespace CE
         private static void MainGame()
         {
             var state = new State("r1bqkb1r/p2p1ppp/n1p2n2/1p2p3/4P3/2PP1N2/PP2BPPP/RNBQK2R w");
-            var ai = new AI();
+            var evaluator = new Evaluator();
+            var ai = new AI(evaluator);
             var eval = ai.Minimax(state, 2, state.WhiteToMove);
             var moveConverter = new MoveConverter();
             Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove));
@@ -38,7 +39,8 @@ namespace CE
             var playersWhite = player.Contains('1') ? true : false;
 
             var state = new State();
-            var ai = new AI();
+            var evaluator = new Evaluator();
+            var ai = new AI(evaluator);
             var moveConverter = new MoveConverter();
 
             while(true){
@@ -72,8 +74,9 @@ namespace CE
         private static void TestSpeed(){
             var sw = new Stopwatch();
             var state = new State("rn1qkbnr/ppp1p1p1/5p1p/3p1b2/1P1P4/P1P1P3/5PPP/RNBQKBNR b");
-            var ai = new AI();
-            var iterations = 2;
+            var evaluator = new Evaluator();
+            var ai = new AI(evaluator);
+            var iterations = 1;
             sw.Start();
             for(int i = 0; i < iterations; i++){   
                 var eval = ai.Minimax(state, 4, state.WhiteToMove);

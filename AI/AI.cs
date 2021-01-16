@@ -1,9 +1,14 @@
 using System;
 
 public class AI{
+    public Evaluator Evaluator { get; set; }
+    public AI(Evaluator eval)
+    {
+        Evaluator = eval;
+    }
     public Tuple<double, State> Minimax(State state, int depth, bool maximizingPlayer){
         if(depth == 0){
-            return new Tuple<double, State>(Evaluate(state), null);
+            return new Tuple<double, State>(Evaluator.Evaluate(state), null);
         }
 
         if(maximizingPlayer){
@@ -32,32 +37,5 @@ public class AI{
             }
             return new Tuple<double, State>(minEval, minState);
         }
-    }
-
-    private double Evaluate(State state)
-    {
-        double score = 0;
-        foreach(var piece in state.PieceLookup){
-            var value = 0;
-            switch(piece.Type){
-                case PieceType.Pawn:
-                    value = 1;
-                    break;
-                case PieceType.Rook:
-                    value = 5;
-                    break;
-                case PieceType.Bishop:
-                    value = 3;
-                    break;
-                case PieceType.Knight:
-                    value = 3;
-                    break;
-                case PieceType.Queen:
-                    value = 9;
-                    break;
-            }
-            score += piece.IsWhite ? value : -value;
-        }
-        return score;
     }
 }

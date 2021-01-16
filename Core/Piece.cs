@@ -21,11 +21,14 @@ public class Piece{
         return new Piece(Line, File, Type, IsWhite, HasMoved);
     }
 
-    public IEnumerable<Move> GetPossibleMoves(Piece[,] board, bool movesAndAttacks = true){
+    public IEnumerable<Move> GetPossibleMoves(Piece[,] board, bool onlyAttacks = false, bool onlyPawnAdvances = false){
         IEnumerable<Move> moves = null;
+        if(onlyPawnAdvances && Type == PieceType.Pawn){
+            return GetPawnAdvanceMoves(board);
+        }
         switch(Type){
             case PieceType.Pawn:
-                moves = GetPawnMoves(board, movesAndAttacks);
+                moves = GetPawnMoves(board, onlyAttacks);
                 break;
             case PieceType.Knight:
                 moves = GetKnightMoves(board);
@@ -47,6 +50,7 @@ public class Piece{
         return moves;
     }
 
+    //TODO bool includeCastling
     private IEnumerable<Move> GetKingMoves(Piece[,] board)
     {
         var moves = new List<Move>();
@@ -150,56 +154,11 @@ public class Piece{
         }
     }
 
-    private IEnumerable<Move> GetPawnMoves(Piece[,] board, bool movesAndAttacks = true)
+    private IEnumerable<Move> GetPawnMoves(Piece[,] board, bool onlyAttacks = false)
     {
         var moves = new List<Move>();
-        if(movesAndAttacks){
-            if(IsWhite){
-                if(Line == 6){
-                    if(board[5, File] == null){
-                        moves.Add(new Move(6, File, 5, File));
-                        if(board[4, File] == null){
-                            moves.Add(new Move(6, File, 4, File));
-                        }
-                    }
-                }
-                else{
-                    if(board[Line - 1, File] == null){
-                        if(Line - 1 == 0){
-                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Knight));
-                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Bishop));
-                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Rook));
-                            moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Queen));
-                        }
-                        else{
-                            moves.Add(new Move(Line, File, (short)(Line - 1), File));
-                        }
-                    }
-                }
-            }
-            else{
-                if(Line == 1){
-                    if(board[2, File] == null){
-                        moves.Add(new Move(Line, File, 2, File));
-                        if(board[3, File] == null){
-                            moves.Add(new Move(1, File, 3, File));
-                        }
-                    }
-                }
-                else{
-                    if(board[Line + 1, File] == null){
-                        if(Line + 1 == 7){
-                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Knight));
-                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Bishop));
-                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Rook));
-                            moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Queen));
-                        }
-                        else{
-                            moves.Add(new Move(Line, File, (short)(Line + 1), File));
-                        }
-                    }
-                }
-            }
+        if(!onlyAttacks){
+            moves.AddRange(GetPawnAdvanceMoves(board));
         }
 
         int moveDirection = IsWhite ? -1 : 1;
@@ -229,6 +188,58 @@ public class Piece{
             }
         }
 
+        return moves;
+    }
+
+    private IEnumerable<Move> GetPawnAdvanceMoves(Piece[,] board)
+    {
+        var moves = new List<Move>();
+        if(IsWhite){
+            if(Line == 6){
+                if(board[5, File] == null){
+                    moves.Add(new Move(6, File, 5, File));
+                    if(board[4, File] == null){
+                        moves.Add(new Move(6, File, 4, File));
+                    }
+                }
+            }
+            else{
+                if(board[Line - 1, File] == null){
+                    if(Line - 1 == 0){
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Knight));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Bishop));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Rook));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Queen));
+                    }
+                    else{
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File));
+                    }
+                }
+            }
+        }
+        else{
+            if(Line == 1){
+                if(board[2, File] == null){
+                    moves.Add(new Move(Line, File, 2, File));
+                    if(board[3, File] == null){
+                        moves.Add(new Move(1, File, 3, File));
+                    }
+                }
+            }
+            else{
+                if(board[Line + 1, File] == null){
+                    if(Line + 1 == 7){
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Knight));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Bishop));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Rook));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Queen));
+                    }
+                    else{
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File));
+                    }
+                }
+            }
+        }
         return moves;
     }
 
