@@ -8,11 +8,11 @@ namespace CE
     {
         static void Main(string[] args)
         {
-            // MainGame();
+            MainGame();
 
             // FenTest();
-            RealGame();
-            // TestSpeed();
+            // RealGame();
+            //TestSpeed();
         }
 
         private static void FenTest()
@@ -25,10 +25,10 @@ namespace CE
 
         private static void MainGame()
         {
-            var state = new State("r1bqkb1r/p2p1ppp/n1p2n2/1p2p3/4P3/2PP1N2/PP2BPPP/RNBQK2R w");
+            var state = new State("r1bqkb1r/pppp1ppp/2n2n2/3Pp3/2P1P3/2N5/PP3PPP/R1BQKBNR b");
             var evaluator = new Evaluator();
             var ai = new AI(evaluator);
-            var eval = ai.Minimax(state, 2, state.WhiteToMove);
+            var eval = ai.Minimax(state, 3, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             var moveConverter = new MoveConverter();
             Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove));
         }
@@ -64,7 +64,7 @@ namespace CE
                     }
                 }
                 else{
-                    var eval = ai.Minimax(state, 4, state.WhiteToMove);
+                    var eval = ai.Minimax(state, 5, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
                     Console.WriteLine(eval.Item1 + " " + moveConverter.MoveToString(eval.Item2.LastMove));
                     state = eval.Item2;
                 }
@@ -79,7 +79,7 @@ namespace CE
             var iterations = 1;
             sw.Start();
             for(int i = 0; i < iterations; i++){   
-                var eval = ai.Minimax(state, 4, state.WhiteToMove);
+                var eval = ai.Minimax(state, 5, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             }
             Console.WriteLine(sw.ElapsedMilliseconds / iterations);
         }
