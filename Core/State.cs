@@ -79,6 +79,8 @@ public class State{
             }
         }
 
+        moves = OrderMoves(moves);
+
         foreach(var move in moves){
             var newState = new State(this, move);
             var attackingMoves = newState.GetAttackingMoves();
@@ -112,6 +114,11 @@ public class State{
         }
 
         return states;
+    }
+
+    private List<Move> OrderMoves(List<Move> moves)
+    {
+        return moves.OrderByDescending(m => m.WasCapture).ToList();
     }
 
     public List<Move> GetAttackingMoves(){

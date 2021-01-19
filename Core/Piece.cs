@@ -71,11 +71,11 @@ public class Piece{
             var leftRook = board[Line, File - 4];
             if(board[Line, File + 1] == null && board[Line, File + 2] == null 
                 && rightRook != null && rightRook.Type == PieceType.Rook && !rightRook.HasMoved){
-                    moves.Add(new Move(Line, File, Line, (short)(File + 2), false, null, true));
+                    moves.Add(new Move(Line, File, Line, (short)(File + 2), false, false, null, true));
                 }
             if(board[Line, File - 1] == null && board[Line, File - 2] == null && board[Line, File - 3] == null
                 && leftRook != null && leftRook.Type == PieceType.Rook && !leftRook.HasMoved){
-                    moves.Add(new Move(Line, File, Line, (short)(File - 2), false, null, false, true));
+                    moves.Add(new Move(Line, File, Line, (short)(File - 2), false, false, null, false, true));
                 }
         }
         return moves;
@@ -145,11 +145,14 @@ public class Piece{
         if(xIndex >= 0 && yIndex >= 0 && xIndex <= 7 && yIndex <= 7){
             var pieceOnSquare = board[yIndex, xIndex];
 
-            if(pieceOnSquare != null && pieceOnSquare.IsWhite == IsWhite){
+            if(pieceOnSquare == null){
+                moves.Add(new Move(Line, File, yIndex, xIndex));
+            }
+            else if(pieceOnSquare.IsWhite == IsWhite){
                 return;
             }
             else{
-                moves.Add(new Move(Line, File, yIndex, xIndex));
+                moves.Add(new Move(Line, File, yIndex, xIndex, true));
             }
         }
     }
@@ -167,24 +170,24 @@ public class Piece{
         var rightAttackedPiece = File + 1 <= 7 ? board[Line + moveDirection, File + 1] : null;
         if(leftAttackedPiece != null && leftAttackedPiece.IsWhite != IsWhite){
             if(Line + moveDirection == 0 || Line + moveDirection == 7){
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Knight));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Bishop));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Rook));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, PieceType.Queen));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, true, PieceType.Knight));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, true, PieceType.Bishop));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, true, PieceType.Rook));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true, true, PieceType.Queen));
             }
             else{
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1)));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File - 1), true));
             }
         }
         if(rightAttackedPiece != null && rightAttackedPiece.IsWhite != IsWhite){
             if(Line + moveDirection == 0 || Line + moveDirection == 7){
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Knight));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Bishop));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Rook));
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, PieceType.Queen));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, true, PieceType.Knight));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, true, PieceType.Bishop));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, true, PieceType.Rook));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true, true, PieceType.Queen));
             }
             else{
-                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1)));
+                moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true));
             }
         }
 
@@ -206,10 +209,10 @@ public class Piece{
             else{
                 if(board[Line - 1, File] == null){
                     if(Line - 1 == 0){
-                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Knight));
-                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Bishop));
-                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Rook));
-                        moves.Add(new Move(Line, File, (short)(Line - 1), File, true, PieceType.Queen));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, false, true, PieceType.Knight));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, false, true, PieceType.Bishop));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, false, true, PieceType.Rook));
+                        moves.Add(new Move(Line, File, (short)(Line - 1), File, false, true, PieceType.Queen));
                     }
                     else{
                         moves.Add(new Move(Line, File, (short)(Line - 1), File));
@@ -229,10 +232,10 @@ public class Piece{
             else{
                 if(board[Line + 1, File] == null){
                     if(Line + 1 == 7){
-                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Knight));
-                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Bishop));
-                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Rook));
-                        moves.Add(new Move(Line, File, (short)(Line + 1), File, true, PieceType.Queen));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, false, true, PieceType.Knight));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, false, true, PieceType.Bishop));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, false, true, PieceType.Rook));
+                        moves.Add(new Move(Line, File, (short)(Line + 1), File, false, true, PieceType.Queen));
                     }
                     else{
                         moves.Add(new Move(Line, File, (short)(Line + 1), File));
@@ -252,7 +255,7 @@ public class Piece{
                 break;
             }
             else if(pieceOnSquare != null && pieceOnSquare.IsWhite != IsWhite){
-                allMoves.Add(new Move(Line, File, (short)(i), (short)(j)));
+                allMoves.Add(new Move(Line, File, (short)(i), (short)(j), true));
                 break;
             }
             else{

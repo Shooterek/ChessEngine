@@ -14,10 +14,10 @@ public class MoveConverter{
 
     public Move StringToMove(string move){
         if(move.Equals("00")){
-            return new Move(0, 0, 0, 0, false, null, true);
+            return new Move(0, 0, 0, 0, false, false, null, true);
         }
         if(move.Equals("000")){
-            return new Move(0, 0, 0, 0, false, null, false, true);
+            return new Move(0, 0, 0, 0, false, false, null, false, true);
         }
         short startingFile = FileToNumber(move[0]);
         var startingLine = 8 - (int)Char.GetNumericValue(move[1]);
