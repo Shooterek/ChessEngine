@@ -112,30 +112,30 @@ public class State{
                 }
             }
             Move m = null;
-            for(int z = 0; z < attackingMoves.Count; z++)
-            {
-                m = attackingMoves[z];
-            }
-            if(move.WasLongCastling){
-                if(attackingMoves.Any(m => m.DestinationLine == king.Line && (m.DestinationFile == king.File || m.DestinationFile == king.File + 1 
-                    || m.DestinationFile == king.File + 2))){
-
+            var isSafe = true;
+            if(move.WasShortCastling){
+                for(int z = 0; z < attackingMoves.Count; z++)
+                {
+                    m = attackingMoves[z];
+                    if(m.DestinationLine == king.Line && 
+                        (m.DestinationFile == king.File || m.DestinationFile == king.File - 1 || m.DestinationFile == king.File - 2)){
+                        isSafe = false;
+                        break;
                     }
-                else{
-                    states.Add(newState);
                 }
             }
-            else if(move.WasShortCastling){
-                if(attackingMoves.Any(m => m.DestinationLine == king.Line && (m.DestinationFile == king.File || m.DestinationFile == king.File - 1
-                    || m.DestinationFile == king.File - 2))){
-
+            else if(move.WasLongCastling){
+                for(int z = 0; z < attackingMoves.Count; z++)
+                {
+                    m = attackingMoves[z];
+                    if(m.DestinationLine == king.Line && 
+                        (m.DestinationFile == king.File || m.DestinationFile == king.File + 1 || m.DestinationFile == king.File + 2)){
+                        isSafe = false;
+                        break;
                     }
-                else{
-                    states.Add(newState);
                 }
             }
             else{
-                var isSafe = true;
                 for(int a = 0; a < attackingMoves.Count; a++)
                 {
                     if(attackingMoves[a].DestinationFile == king.File && attackingMoves[a].DestinationLine == king.Line)
@@ -144,10 +144,9 @@ public class State{
                         break;
                     }
                 }
-                if (isSafe)
-                {
-                    states.Add(newState);
-                }
+            }
+            if(isSafe){
+                states.Add(newState);
             }
         }
 
