@@ -6,19 +6,18 @@ namespace CE
 {
     class Program
     {
+        //TODO inculde en passant support and checkmate scoring.
         static void Main(string[] args)
         {
             //MainGame();
 
-            //RealGame();
-            TestSpeed();
+            RealGame();
+            //TestSpeed();
         }
 
         private static void MainGame()
         {
             var depth = 6;
-            //var state = new State("r1bqkb1r/pppp1ppp/2n2n2/3Pp3/2P1P3/2N5/PP3PPP/R1BQKBNR b KQkq - 0 1");
-
             var state = new State("r1b1k1nr/ppp1qppp/8/3p4/1b6/2NB1Q2/PPPB1PPP/R3K2R w KQkq - 1 9");
 
             var moveConverter = new MoveConverter();
@@ -28,28 +27,31 @@ namespace CE
             var eval = ai.Minimax(state, depth--, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove) + " " + eval.Item1);
 
-            // while (depth >= 0)
-            // {
-            //     state = eval.Item2;
-            //     Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove) + " " + eval.Item1);
-            //     eval = ai.Minimax(state, depth--, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
-            // }
+            while (depth >= 0)
+            {
+                state = eval.Item2;
+                Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove) + " " + eval.Item1);
+                eval = ai.Minimax(state, depth--, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
+            }
         }
 
         private static void RealGame(){
+            Console.WriteLine("Enter 1 if you want to play as white or 2 if you want to play as black");
             var player = Console.ReadLine();
-            Console.WriteLine("You've typed " + player);
             var playersWhite = player.Contains('1') ? true : false;
+            var playerSide = playersWhite ? "White" : "Black";
+            Console.WriteLine("You're playing as " + playerSide);
 
             var state = new State();
             var evaluator = new Evaluator();
             var ai = new AI(evaluator);
             var moveConverter = new MoveConverter();
-            var depth = 5;
+            var depth = 4;
             var moveCounter = 0;
 
             while(true){
                 if(state.WhiteToMove == playersWhite){
+                    State nextState = null;
                     var m = Console.ReadLine();
                     if(m.Contains("res")){
                         break;
@@ -58,25 +60,32 @@ namespace CE
                     var allStates = state.GetAllStates();
                     var x = allStates.Select(x => x.LastMove).ToList();
                     if(move.WasLongCastling){
-                        state = allStates.First(s => s.LastMove.WasLongCastling);
+                        nextState = allStates.FirstOrDefault(s => s.LastMove.WasLongCastling);
                     }
                     if(move.WasShortCastling){
-                        state = allStates.First(s => s.LastMove.WasShortCastling);
+                        nextState = allStates.FirstOrDefault(s => s.LastMove.WasShortCastling);
                     }
                     else{
-                        state = allStates.First(s => s.LastMove.DestinationFile == move.DestinationFile && s.LastMove.DestinationLine == move.DestinationLine 
+                        nextState = allStates.FirstOrDefault(s => s.LastMove.DestinationFile == move.DestinationFile && s.LastMove.DestinationLine == move.DestinationLine 
                             && s.LastMove.StartingLine == move.StartingLine && s.LastMove.StartingFile == move.StartingFile);
+                    }
+                    if(nextState == null){
+                        Console.WriteLine("You've entered an incorrect move. Try again or type 'res' if you want to quit");
+                        continue;
+                    }
+                    else{
+                        state = nextState;
                     }
                 }
                 else{
                     var eval = ai.Minimax(state, depth, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
-                    Console.WriteLine(eval.Item1 + " " + moveConverter.MoveToString(eval.Item2.LastMove));
+                    Console.WriteLine("Your opponent has played the move " + moveConverter.MoveToString(eval.Item2.LastMove) + " and the score is " +  (double)eval.Item1/100);
                     state = eval.Item2;
                 }
                 moveCounter++;
-                if(moveCounter > 15)
+                if(moveCounter > 18)
                 {
-                    depth = 6;
+                    depth = 5;
                 }
             }
         }
@@ -89,7 +98,7 @@ namespace CE
             var iterations = 1;
             sw.Start();
             for(int i = 0; i < iterations; i++){   
-                var eval = ai.Minimax(state, 6, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
+                var eval = ai.Minimax(state, 4, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             }
             Console.WriteLine(sw.ElapsedMilliseconds / iterations);
             sw.Stop();
