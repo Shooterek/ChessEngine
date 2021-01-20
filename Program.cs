@@ -8,20 +8,29 @@ namespace CE
     {
         static void Main(string[] args)
         {
-            MainGame();
+            //MainGame();
 
             //RealGame();
-            //TestSpeed();
+            TestSpeed();
         }
 
         private static void MainGame()
         {
-            var state = new State("r1bqkb1r/pppp1ppp/2n2n2/3Pp3/2P1P3/2N5/PP3PPP/R1BQKBNR b");
+            var depth = 8;
+            var state = new State("r1bqkb1r/pppp1ppp/2n2n2/3Pp3/2P1P3/2N5/PP3PPP/R1BQKBNR b KQkq - 0 1");
+            // var state = new State("8/4r1pp/2pk1b2/2ppp2Q/P3b3/1r2P3/K5N1/3R4 w - - 0 41");
             var evaluator = new Evaluator();
             var moveConverter = new MoveConverter();
             var ai = new AI(evaluator);
-            var eval = ai.Minimax(state, 4, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
+            var eval = ai.Minimax(state, depth--, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove) + " " + eval.Item1);
+
+            while (depth >= 0)
+            {
+                state = eval.Item2;
+                Console.WriteLine(moveConverter.MoveToString(eval.Item2.LastMove) + " " + eval.Item1);
+                eval = ai.Minimax(state, depth--, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
+            }
         }
 
         private static void RealGame(){
@@ -55,7 +64,7 @@ namespace CE
                     }
                 }
                 else{
-                    var eval = ai.Minimax(state, 5, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
+                    var eval = ai.Minimax(state, 6, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
                     Console.WriteLine(eval.Item1 + " " + moveConverter.MoveToString(eval.Item2.LastMove));
                     state = eval.Item2;
                 }
@@ -64,7 +73,7 @@ namespace CE
 
         private static void TestSpeed(){
             var sw = new Stopwatch();
-            var state = new State("rn1qkbnr/ppp1p1p1/5p1p/3p1b2/1P1P4/P1P1P3/5PPP/RNBQKBNR b");
+            var state = new State("r1b1kbnr/ppp1pppp/2n5/3q4/8/5N1P/PPPP1PP1/RNBQKB1R b KQkq - 2 4");
             var evaluator = new Evaluator();
             var ai = new AI(evaluator);
             var iterations = 1;
@@ -73,6 +82,7 @@ namespace CE
                 var eval = ai.Minimax(state, 6, Int32.MinValue, Int32.MaxValue, state.WhiteToMove);
             }
             Console.WriteLine(sw.ElapsedMilliseconds / iterations);
+            sw.Stop();
         }
     }
 }

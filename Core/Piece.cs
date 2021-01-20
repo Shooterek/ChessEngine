@@ -3,57 +3,47 @@ using System.Linq;
 using System.Collections.Generic;
 
 public class Piece{
-    public Piece(short line, short file, PieceType type, bool isWhite, bool hasMoved = false)
+    public Piece(short line, short file, PieceType type, bool isWhite)
     {
         File = file;
         Line = line;
         Type = type;
         IsWhite = isWhite;
-        HasMoved = hasMoved;
     }
     public short File { get; set; }
     public short Line { get; set; }
     public PieceType Type { get; set; }
     public bool IsWhite { get; set; }
-    public bool HasMoved { get; set; }
 
     public Piece CopyPiece(){
-        return new Piece(Line, File, Type, IsWhite, HasMoved);
+        return new Piece(Line, File, Type, IsWhite);
     }
 
-    public IEnumerable<Move> GetPossibleMoves(Piece[,] board, bool onlyAttacks = false, bool onlyPawnAdvances = false){
-        IEnumerable<Move> moves = null;
-        if(onlyPawnAdvances && Type == PieceType.Pawn){
-            return GetPawnAdvanceMoves(board);
-        }
+    public void GetPossibleMoves(Piece[,] board, List<Move> moves, bool castleShort, bool castleLong, bool includePawnAdvances = true){
         switch(Type){
             case PieceType.Pawn:
-                moves = GetPawnMoves(board, onlyAttacks);
+                GetPawnMoves(board, moves, includePawnAdvances);
                 break;
             case PieceType.Knight:
-                moves = GetKnightMoves(board);
+                GetKnightMoves(board, moves);
                 break;
             case PieceType.Bishop:
-                moves = GetBishopMoves(board);
+                GetBishopMoves(board, moves);
                 break;
             case PieceType.Rook:
-                moves = GetRookMoves(board);
+                GetRookMoves(board, moves);
                 break;
             case PieceType.Queen:
-                moves = GetQueenMoves(board);
+                GetQueenMoves(board, moves);
                 break;
             case PieceType.King:
-                moves = GetKingMoves(board);
+                GetKingMoves(board, moves, castleShort, castleLong);
                 break;
         }
-
-        return moves;
     }
 
-    //TODO bool includeCastling
-    private IEnumerable<Move> GetKingMoves(Piece[,] board)
+    private void GetKingMoves(Piece[,] board, List<Move> moves, bool castleShort, bool castleLong)
     {
-        var moves = new List<Move>();
         for(int i = -1; i <= 1; i++){
             for(int j = -1; j <= 1; j++){
                 if(i != 0 || j != 0){
@@ -66,66 +56,60 @@ public class Piece{
                 }
             }
         }
-        if(!HasMoved){
-            var rightRook = board[Line, File + 3];
-            var leftRook = board[Line, File - 4];
-            if(board[Line, File + 1] == null && board[Line, File + 2] == null 
-                && rightRook != null && rightRook.Type == PieceType.Rook && !rightRook.HasMoved){
-                    moves.Add(new Move(Line, File, Line, (short)(File + 2), false, false, null, true));
-                }
-            if(board[Line, File - 1] == null && board[Line, File - 2] == null && board[Line, File - 3] == null
-                && leftRook != null && leftRook.Type == PieceType.Rook && !leftRook.HasMoved){
-                    moves.Add(new Move(Line, File, Line, (short)(File - 2), false, false, null, false, true));
-                }
+        if(castleShort){
+            Piece rightRook = null;
+            if(File + 3 <= 7){
+                rightRook = board[Line, File + 3];
+            }
+            if(board[Line, File + 1] == null && board[Line, File + 2] == null && rightRook != null){
+                moves.Add(new Move(Line, File, Line, (short)(File + 2), false, false, null, true));
+            }
         }
-        return moves;
+        if(castleLong){
+            Piece leftRook = null;
+            if(File - 4 >= 0){
+                leftRook = board[Line, File - 4];
+            }
+            if(board[Line, File - 1] == null && board[Line, File - 2] == null && board[Line, File - 3] == null && leftRook != null){
+                moves.Add(new Move(Line, File, Line, (short)(File - 2), false, false, null, false, true));
+            }
+        }
     }
 
-    private IEnumerable<Move> GetQueenMoves(Piece[,] board)
+    private void GetQueenMoves(Piece[,] board, List<Move> moves)
     {
-        var moves = new List<Move>();
+        CheckLine(Line, File, 1, 0, board, moves);
+        CheckLine(Line, File, 0, 1, board, moves);
+        CheckLine(Line, File, -1, 0, board, moves);
+        CheckLine(Line, File, 0, -1, board, moves);
 
-        moves.AddRange(CheckLine(Line, File, 1, 0, board));
-        moves.AddRange(CheckLine(Line, File, 0, 1, board));
-        moves.AddRange(CheckLine(Line, File, -1, 0, board));
-        moves.AddRange(CheckLine(Line, File, 0, -1, board));
+        CheckLine(Line, File, 1, 1, board, moves);
+        CheckLine(Line, File, 1, -1, board, moves);
+        CheckLine(Line, File, -1, -1, board, moves);
+        CheckLine(Line, File, -1, 1, board, moves);
 
-        moves.AddRange(CheckLine(Line, File, 1, 1, board));
-        moves.AddRange(CheckLine(Line, File, 1, -1, board));
-        moves.AddRange(CheckLine(Line, File, -1, -1, board));
-        moves.AddRange(CheckLine(Line, File, -1, 1, board));
-
-        return moves;
     }
 
-    private IEnumerable<Move> GetRookMoves(Piece[,] board)
+    private void GetRookMoves(Piece[,] board, List<Move> moves)
     {
-        var moves = new List<Move>();
+        CheckLine(Line, File, 1, 0, board, moves);
+        CheckLine(Line, File, 0, 1, board, moves);
+        CheckLine(Line, File, -1, 0, board, moves);
+        CheckLine(Line, File, 0, -1, board, moves);
 
-        moves.AddRange(CheckLine(Line, File, 1, 0, board));
-        moves.AddRange(CheckLine(Line, File, 0, 1, board));
-        moves.AddRange(CheckLine(Line, File, -1, 0, board));
-        moves.AddRange(CheckLine(Line, File, 0, -1, board));
-
-        return moves;
     }
 
-    private IEnumerable<Move> GetBishopMoves(Piece[,] board)
+    private void GetBishopMoves(Piece[,] board, List<Move> moves)
     {
-        var moves = new List<Move>();
+        CheckLine(Line, File, 1, 1, board, moves);
+        CheckLine(Line, File, 1, -1, board, moves);
+        CheckLine(Line, File, -1, -1, board, moves);
+        CheckLine(Line, File, -1, 1, board, moves);
 
-        moves.AddRange(CheckLine(Line, File, 1, 1, board));
-        moves.AddRange(CheckLine(Line, File, 1, -1, board));
-        moves.AddRange(CheckLine(Line, File, -1, -1, board));
-        moves.AddRange(CheckLine(Line, File, -1, 1, board));
-
-        return moves;
     }
 
-    private IEnumerable<Move> GetKnightMoves(Piece[,] board)
+    private void GetKnightMoves(Piece[,] board, List<Move> moves)
     {
-        var moves = new List<Move>();
-
         GetSquareForKnight(Line, File, 2, 1, board, moves);
         GetSquareForKnight(Line, File, 2, -1, board, moves);
         GetSquareForKnight(Line, File, 1, 2, board, moves);
@@ -134,8 +118,6 @@ public class Piece{
         GetSquareForKnight(Line, File, -2, -1, board, moves);
         GetSquareForKnight(Line, File, -1, 2, board, moves);
         GetSquareForKnight(Line, File, -1, -2, board, moves);
-
-        return moves;
     }
 
     private void GetSquareForKnight(short line, short file, int xStep, int yStep, Piece[,] board, List<Move> moves)
@@ -157,11 +139,11 @@ public class Piece{
         }
     }
 
-    private IEnumerable<Move> GetPawnMoves(Piece[,] board, bool onlyAttacks = false)
+    private void GetPawnMoves(Piece[,] board, List<Move> moves, bool includePawnAdvances = true)
     {
-        var moves = new List<Move>();
-        if(!onlyAttacks){
-            moves.AddRange(GetPawnAdvanceMoves(board));
+        if(includePawnAdvances)
+        {
+            GetPawnAdvanceMoves(board, moves);
         }
 
         int moveDirection = IsWhite ? -1 : 1;
@@ -190,13 +172,10 @@ public class Piece{
                 moves.Add(new Move(Line, File, (short)(Line + moveDirection), (short)(File + 1), true));
             }
         }
-
-        return moves;
     }
 
-    private IEnumerable<Move> GetPawnAdvanceMoves(Piece[,] board)
+    private void GetPawnAdvanceMoves(Piece[,] board, List<Move> moves)
     {
-        var moves = new List<Move>();
         if(IsWhite){
             if(Line == 6){
                 if(board[5, File] == null){
@@ -243,12 +222,10 @@ public class Piece{
                 }
             }
         }
-        return moves;
     }
 
-    private List<Move> CheckLine(short line, short file, int xStep, int yStep, Piece[,] board)
+    private void CheckLine(short line, short file, int xStep, int yStep, Piece[,] board, List<Move> allMoves)
     {
-        var allMoves = new List<Move>();
         for(int i = Line + yStep, j = File + xStep; i <= 7 && j <= 7 && i >= 0 && j >= 0; i += yStep, j += xStep){
             var pieceOnSquare = board[i, j];
             if(pieceOnSquare != null && pieceOnSquare.IsWhite == IsWhite){
@@ -262,8 +239,6 @@ public class Piece{
                 allMoves.Add(new Move(Line, File, (short)(i), (short)(j)));
             }
         }
-
-        return allMoves;
     }
 
     public override string ToString()

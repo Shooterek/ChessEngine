@@ -10,7 +10,7 @@ public class AI{
         if(depth == 0){
             return new Tuple<int, State>(Evaluator.Evaluate(state), null);
         }
-
+        
         if(maximizingPlayer){
             var maxEval = Int32.MinValue;
             State maxState = null;
