@@ -17,12 +17,12 @@ public class Evaluator{
     private int[,] _blackRooksTable;
     private int[,] _whiteQueensTable;
     private int[,] _blackQueensTable;
-    public double Evaluate(State state)
+    public int Evaluate(State state)
     {
-        double score = 0;
+        int score = 0;
         foreach(var piece in state.PieceLookup){
-            double value = 0;
-            double bonus = 0;
+            int value = 0;
+            int bonus = 0;
             switch(piece.Type){
                 case PieceType.Pawn:
                     value = 100;
@@ -73,8 +73,8 @@ public class Evaluator{
         var table = new int[8, 8];
         var data = File.ReadAllLines(path);
         if(isWhite){
+            var counter = 0;
             foreach(var row in data){
-                var counter = 0;
                 var values = row.Split(',');
                 for(int i = 0; i < 8; i++){
                     table[counter, i] = Int32.Parse(values[i]);
